@@ -102,10 +102,22 @@ export function uid(): string {
 
 export type CloudStatus = "local" | "connecting" | "synced" | "offline" | "error";
 
+/** Which kind of Supabase session this device holds. */
+export interface AuthInfo {
+  /** null = no Supabase configured or not connected yet */
+  email: string | null;
+  isAnonymous: boolean;
+}
+
 interface StoreCtx {
   state: AppState;
   ready: boolean;
   cloud: CloudStatus;
+  auth: AuthInfo;
+  /** Device already has data + anon session → attach an email to THIS user id (no data loss). Sends a confirm link. */
+  claimEmail: (email: string) => Promise<{ ok: boolean; msg: string }>;
+  /** Fresh device → request a magic link that signs into the shared account. */
+  requestMagicLink: (email: string) => Promise<{ ok: boolean; msg: string }>;
   setStatus: (date: string, habitId: string, status: HabitStatus | null) => void;
   setWakeActual: (date: string, actual: string | null) => void;
   ensureWakeTarget: (date: string, target: string) => void;
@@ -141,11 +153,61 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(freshState);
   const [ready, setReady] = useState(false);
   const [cloud, setCloud] = useState<CloudStatus>("local");
+  const [auth, setAuth] = useState<AuthInfo>({ email: null, isAnonymous: false });
   const sbRef = useRef<SupabaseClient | null>(null);
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // ── Auth helpers (unified cross-device account) ─────────────────────────────
+
+  /**
+   * PC case: this device already has an anonymous session + all the data.
+   * Attaching an email to the SAME user keeps every streak/log intact.
+   * Supabase sends a confirmation link; identity merges on click.
+   */
+  async function claimEmail(email: string): Promise<{ ok: boolean; msg: string }> {
+    const sb = sbRef.current;
+    if (!sb) return { ok: false, msg: "Cloud not connected — check Supabase env vars." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return { ok: false, msg: "That doesn't look like a valid email." };
+    try {
+      const { error } = await sb.auth.updateUser({ email });
+      if (error) return { ok: false, msg: `Supabase said: ${error.message}` };
+      setAuth({ email, isAnonymous: true }); // stays anon until link is clicked
+      return {
+        ok: true,
+        msg: `Confirmation link sent to ${email}. Open it on any device to lock in this account. Your data here is untouched.`,
+      };
+    } catch (e) {
+      return { ok: false, msg: e instanceof Error ? e.message : "Unexpected error." };
+    }
+  }
+
+  /**
+   * Phone case (fresh device): request a magic link for the shared account.
+   * Signing in loads the SAME user_id → same cloud row → unified streak.
+   */
+  async function requestMagicLink(email: string): Promise<{ ok: boolean; msg: string }> {
+    const sb = sbRef.current;
+    if (!sb) return { ok: false, msg: "Cloud not connected — check Supabase env vars." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return { ok: false, msg: "That doesn't look like a valid email." };
+    try {
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
+      });
+      if (error) return { ok: false, msg: `Supabase said: ${error.message}` };
+      return {
+        ok: true,
+        msg: `Magic link sent to ${email}. Open it ON YOUR PHONE to bind that device to your account.`,
+      };
+    } catch (e) {
+      return { ok: false, msg: e instanceof Error ? e.message : "Unexpected error." };
+    }
+  }
 
   // Load local + connect cloud
   useEffect(() => {
@@ -161,16 +223,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         });
         sbRef.current = sb;
 
-        // Single-user app: anonymous session bound to this browser.
-        let uid_ = (await sb.auth.getUser()).data.user?.id ?? null;
-        if (!uid_) {
-          const { data, error } = await sb.auth.signInAnonymously();
-          if (error || !data.user) throw error ?? new Error("anon signin failed");
-          uid_ = data.user.id;
+        // Unified account: prefer an existing real (email) or anonymous session.
+        // Fresh devices stay signed-out until the owner links via Settings.
+        let user = (await sb.auth.getUser()).data.user ?? null;
+        if (!user) {
+          setCloud("local");
+          return;
         }
-        userIdRef.current = uid_;
+        userIdRef.current = user.id;
+        setAuth({ email: user.email ?? null, isAnonymous: !!user.is_anonymous });
 
-        await pull(sb, uid_);
+        await pull(sb, user.id);
         setCloud("synced");
       } catch {
         setCloud("offline"); // works local-only until Supabase reachable
@@ -185,7 +248,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
       if (error || !data?.data) return;
       const metaRaw = window.localStorage.getItem(SYNC_KEY);
-      const lastPush = metaRaw ? (JSON.parse(metaRaw).lastPush as number) : 0;
+      const meta = metaRaw ? JSON.parse(metaRaw) : {};
+      // lastPush is scoped per-user: switching accounts always trusts cloud first
+      const lastPush = meta.userId === userId ? ((meta.lastPush as number) ?? 0) : 0;
       const cloudUpdated = new Date(data.updated_at as string).getTime();
       // Cloud wins only if it's newer than our last successful push
       if (cloudUpdated > lastPush) {
@@ -212,7 +277,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     }
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -236,7 +305,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         if (error) throw error;
         window.localStorage.setItem(
           SYNC_KEY,
-          JSON.stringify({ lastPush: Date.now() }),
+          JSON.stringify({ lastPush: Date.now(), userId }),
         );
         setCloud("synced");
       } catch {
@@ -346,6 +415,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     state,
     ready,
     cloud,
+    auth,
+    claimEmail,
+    requestMagicLink,
     setStatus,
     setWakeActual,
     ensureWakeTarget,

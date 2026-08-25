@@ -17,12 +17,37 @@ export default function SettingsPage() {
     addBlock,
     removeBlock,
     updateSettings,
+    cloud,
+    auth,
+    claimEmail,
+    requestMagicLink,
   } = useApp();
 
   const [newHabit, setNewHabit] = useState({ name: "", icon: "✅", mvd: "" });
   const [blockDay, setBlockDay] = useState(1);
   const [block, setBlock] = useState({ start: "18:00", end: "19:00", label: "", kind: "deep" as BlockKind });
   const [customEx, setCustomEx] = useState("");
+  const [email, setEmail] = useState("");
+  const [authMsg, setAuthMsg] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+
+  async function handleClaim() {
+    if (authBusy) return;
+    setAuthBusy(true);
+    setAuthMsg(null);
+    const res = await claimEmail(email.trim());
+    setAuthMsg(res);
+    setAuthBusy(false);
+  }
+
+  async function handleMagic() {
+    if (authBusy) return;
+    setAuthBusy(true);
+    setAuthMsg(null);
+    const res = await requestMagicLink(email.trim());
+    setAuthMsg(res);
+    setAuthBusy(false);
+  }
 
   function exportJson() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -40,6 +65,56 @@ export default function SettingsPage() {
         <p className="text-xs uppercase tracking-widest text-slate-400">Make it yours</p>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
       </div>
+
+      {/* Unified account — one streak across every device */}
+      <Card
+        title="🔗 Account"
+        subtitle={
+          cloud === "synced" && auth.email && !auth.isAnonymous
+            ? `Signed in as ${auth.email} — streak syncs across all your devices`
+            : "Link an email so your phone and PC share ONE account & streak"
+        }
+      >
+        {auth.email && !auth.isAnonymous ? (
+          <p className="text-sm text-emerald-400">
+            ✅ Unified account active. Log in with this email on any new device to pull your full history.
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-emerald-400/60"
+              />
+              {cloud === "synced" && auth.isAnonymous ? (
+                <button
+                  onClick={handleClaim}
+                  disabled={authBusy}
+                  className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:opacity-50"
+                >
+                  {authBusy ? "Sending…" : "Keep my data → link email"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleMagic}
+                  disabled={authBusy}
+                  className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-400 disabled:opacity-50"
+                >
+                  {authBusy ? "Sending…" : "Send magic link"}
+                </button>
+              )}
+            </div>
+            {authMsg && (
+              <p className={`mt-2 text-xs ${authMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
+                {authMsg.msg}
+              </p>
+            )}
+          </>
+        )}
+      </Card>
 
       {/* Ramp mode */}
       <Card title="🌅 Ramp mode" subtitle="5:30am (wk1) → 4:30am (wk2) → 4:00am (wk3+). Prevents burnout crash.">
