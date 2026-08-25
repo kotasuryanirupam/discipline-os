@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏛️ Discipline OS
 
-## Getting Started
+A personal consistency operating system — built for **one user**, designed around
+a real college timetable, a 4am routine, and the rule that wins everything:
+**never miss twice.**
 
-First, run the development server:
+> Next.js 16 · React 19 · Tailwind v4 · Supabase (cloud sync) · PWA
+
+## Screens
+
+| Route | What it does |
+|-------|--------------|
+| `/today` | Wake target + log · today's schedule blocks (auto by weekday) · habit checklist with Done / **MVD** / Missed · streaks 🔥 |
+| `/gym` | Rotating split (Back+Tri → Chest+Bi → Legs+Sh+Abs) · fast set logging · rest timer · PR detection (weight & est. 1RM) |
+| `/shutdown` | 9:30pm ritual: rate the day · write tomorrow's 3 tasks · gym-bag check |
+| `/stats` | 13-week consistency heatmap · adherence by weekday · gym volume & progression charts |
+| `/settings` | Ramp mode (5:30→4:30→4:00) · edit habits/MVDs · edit schedule blocks · export backup |
+
+## Core concepts
+
+- **MVD (Minimum Viable Day)** — a tiny fallback action that *keeps the streak alive* on terrible days.
+- **Never miss twice** — 1 missed day = amber warning banner; 2 = streak resets.
+- **Day-type schedules** — every weekday loads its own block template (matches your real timetable).
+- **Ramp mode** — progressive wake targets so the 4am habit doesn't kill you in week 1.
+
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Cloud sync setup (Supabase)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create a project at [supabase.com](https://supabase.com).
+2. SQL Editor → paste `supabase/schema.sql` → RUN.
+3. Authentication → Providers → enable **Anonymous sign-in**.
+4. Copy Project URL + anon key into `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
 
-## Learn More
+No env vars? App still works — fully local (localStorage), syncs when configured.
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy (Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx vercel
+# add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in project env vars
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Install it on your phone: open the deployed URL → "Add to Home Screen".
 
-## Deploy on Vercel
+## Project layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/            page.tsx (Today) · gym/ · shutdown/ · stats/ · settings/
+  components/     NavBar · CloudDot · ServiceWorkerRegister · ui
+  lib/
+    types.ts      data model
+    seed.ts       your habits, timetable, exercises
+    engine.ts     streaks, never-miss-twice, ramp, PR math
+    store.tsx     state + localStorage + Supabase JSONB sync
+supabase/schema.sql
+public/           manifest.json · sw.js (PWA) · icon.svg
+```
