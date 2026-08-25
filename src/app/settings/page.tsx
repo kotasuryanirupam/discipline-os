@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const [newHabit, setNewHabit] = useState({ name: "", icon: "✅", mvd: "" });
   const [blockDay, setBlockDay] = useState(1);
   const [block, setBlock] = useState({ start: "18:00", end: "19:00", label: "", kind: "deep" as BlockKind });
-  const [customEx, setCustomEx] = useState("");
+  const [customEx] = useState("");
   const [email, setEmail] = useState("");
   const [authMsg, setAuthMsg] = useState<{ ok: boolean; msg: string } | null>(null);
   const [authBusy, setAuthBusy] = useState(false);

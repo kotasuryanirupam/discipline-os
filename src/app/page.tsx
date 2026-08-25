@@ -21,9 +21,13 @@ export default function TodayPage() {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
-    setNow(new Date());
+    // defer one tick — avoids sync setState-in-effect (cascading renders)
+    const t0 = setTimeout(() => setNow(new Date()), 0);
     const t = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(t);
+    return () => {
+      clearTimeout(t0);
+      clearInterval(t);
+    };
   }, []);
 
   const today = now ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}` : "";
@@ -31,7 +35,10 @@ export default function TodayPage() {
 
   const target = wakeTarget(state.settings, today || todayStr());
   useEffect(() => {
-    if (today) ensureWakeTarget(today, target);
+    if (!today) return;
+    // deferred: ensureWakeTarget is idempotent (no-ops if target already exists)
+    const t = setTimeout(() => ensureWakeTarget(today, target), 0);
+    return () => clearTimeout(t);
   }, [today, target, ensureWakeTarget]);
 
   const wake = state.wakeLogs[today];

@@ -158,7 +158,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
-  stateRef.current = state;
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // ── Auth helpers (unified cross-device account) ─────────────────────────────
 
@@ -211,8 +213,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Load local + connect cloud
   useEffect(() => {
-    setState(loadLocal());
-    setReady(true);
+    // Deferred one tick: setState-in-effect triggers cascading-render churn;
+    // `ready` gates children so a single extra frame is invisible.
+    const initT = setTimeout(() => {
+      setState(loadLocal());
+      setReady(true);
+      void connect();
+    }, 0);
 
     async function connect() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
@@ -225,7 +232,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
         // Unified account: prefer an existing real (email) or anonymous session.
         // Fresh devices stay signed-out until the owner links via Settings.
-        let user = (await sb.auth.getUser()).data.user ?? null;
+        const user = (await sb.auth.getUser()).data.user ?? null;
         if (!user) {
           setCloud("local");
           return;
@@ -279,10 +286,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     return () => {
+      clearTimeout(initT);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist locally immediately; debounce-push to cloud

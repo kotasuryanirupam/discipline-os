@@ -48,7 +48,7 @@ export function computeStreak(
 ): StreakInfo {
   // Walk backwards from yesterday; today counts once logged done/mvd.
   const t = new Date(today);
-  let cursor = new Date(t);
+  const cursor = new Date(t);
   cursor.setDate(cursor.getDate() - 1); // start at yesterday
 
   const has = (d: Date): HabitStatus | undefined => {
@@ -60,7 +60,7 @@ export function computeStreak(
 
   // Count trailing misses first
   let missStreak = 0;
-  let probe = new Date(cursor);
+  const probe = new Date(cursor);
   while (true) {
     const s = has(probe);
     if (isMiss(s)) {
@@ -71,7 +71,7 @@ export function computeStreak(
 
   // Current streak: walk back over wins; stop at a miss or gap-before-start.
   let current = 0;
-  let cur = new Date(cursor);
+  const cur = new Date(cursor);
   // If today already logged as win, include it in the displayed streak
   const todayStatus = statusesByDate[localKey(t)];
   if (isWin(todayStatus)) current++;

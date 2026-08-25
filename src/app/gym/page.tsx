@@ -30,15 +30,19 @@ export default function GymPage() {
 
   // Restore today's session if it exists (e.g., page refresh mid-workout)
   useEffect(() => {
-    const t = todayStr();
-    const existing = state.sessions.filter((s) => s.date === t).at(-1);
-    if (existing && sessionId === null && selectedEx.length === 0) {
-      const logged = state.setLogs.filter((s) => s.sessionId === existing.id);
-      if (logged.length > 0 || existing.focus.length > 0) {
-        setSessionId(existing.id);
-        setSelectedEx([...new Set(logged.map((s) => s.exerciseId))]);
+    // deferred one tick — setState-in-effect guard
+    const t = setTimeout(() => {
+      const today = todayStr();
+      const existing = state.sessions.filter((s) => s.date === today).at(-1);
+      if (existing && sessionId === null && selectedEx.length === 0) {
+        const logged = state.setLogs.filter((s) => s.sessionId === existing.id);
+        if (logged.length > 0 || existing.focus.length > 0) {
+          setSessionId(existing.id);
+          setSelectedEx([...new Set(logged.map((s) => s.exerciseId))]);
+        }
       }
-    }
+    }, 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sessions.length]);
 
@@ -254,10 +258,14 @@ function SetLogger({
   }, [state.setLogs, exerciseId]);
 
   useEffect(() => {
-    if (ghost && weight === 0) {
-      setWeight(ghost.weightKg);
-      setReps(ghost.reps);
-    }
+    // deferred one tick — setState-in-effect guard
+    const t = setTimeout(() => {
+      if (ghost && weight === 0) {
+        setWeight(ghost.weightKg);
+        setReps(ghost.reps);
+      }
+    }, 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
