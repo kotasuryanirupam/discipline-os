@@ -92,6 +92,18 @@ function loadLocal(): AppState {
   }
 }
 
+/** How much real data a state blob carries (logs/sessions/sets). 0 = effectively empty. */
+function richness(s: Partial<AppState> | null | undefined): number {
+  if (!s) return 0;
+  return (
+    Object.keys(s.dailyLogs ?? {}).length +
+    Object.keys(s.wakeLogs ?? {}).length +
+    Object.keys(s.shutdown ?? {}).length +
+    (s.sessions ?? []).length +
+    (s.setLogs ?? []).length
+  );
+}
+
 export function uid(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto)
     return crypto.randomUUID();
@@ -261,6 +273,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const cloudUpdated = new Date(data.updated_at as string).getTime();
       // Cloud wins only if it's newer than our last successful push
       if (cloudUpdated > lastPush) {
+        // Safety: never let an effectively-empty cloud blob wipe real local data.
+        if (richness(data.data as AppState) === 0 && richness(stateRef.current) > 0) {
+          return;
+        }
         const base = freshState();
         setState((prev) => ({
           ...base,
@@ -304,6 +320,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const userId = userIdRef.current;
       if (!sb || !userId) return;
       try {
+        // Safety: an effectively-empty device must never overwrite cloud history.
+        const localRich = richness(stateRef.current);
+        if (localRich === 0) {
+          const { data: cur } = await sb
+            .from("app_state")
+            .select("data")
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (richness(cur?.data as AppState) > 0) {
+            setCloud("synced"); // nothing to push; keep cloud as-is
+            return;
+          }
+        }
         const { error } = await sb.from("app_state").upsert({
           user_id: userId,
           data: stateRef.current,
