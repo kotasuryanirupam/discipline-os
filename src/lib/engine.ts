@@ -1,4 +1,3 @@
-// ── Discipline OS · Logic Engine ─────────────────────────────────────────────
 // Streaks, never-miss-twice, MVD semantics, PRs, ramp mode.
 
 import type {
@@ -8,7 +7,7 @@ import type {
   WorkoutSession,
 } from "./types";
 
-// ── Dates ────────────────────────────────────────────────────────────────────
+// Dates
 
 export function todayStr(): string {
   const d = new Date();
@@ -27,7 +26,7 @@ export function dayIndex(dateStr: string): number {
   return Math.floor(new Date(y, m - 1, dd).getTime() / 86400000);
 }
 
-// ── Streaks & Never-Miss-Twice ───────────────────────────────────────────────
+// Streaks & never-miss-twice.
 // MVD ('mvd') keeps a streak alive. 'missed' breaks it.
 // Two consecutive misses = streak resets. One miss = warning state.
 
@@ -115,7 +114,7 @@ function beforeStart(
   return localKey(d) > earliest;
 }
 
-// ── Wake target · Ramp mode ──────────────────────────────────────────────────
+// Wake target / ramp mode
 
 const RAMP_STEPS = ["05:30", "04:30", "04:00"]; // wk1 → wk2 → wk3+
 
@@ -139,7 +138,7 @@ export function daysBetween(from: string, to: string): number {
   );
 }
 
-// ── Gym · PR detection ───────────────────────────────────────────────────────
+// Gym / PR detection
 
 /** Epley estimated 1RM */
 export function est1RM(weightKg: number, reps: number): number {
@@ -178,7 +177,7 @@ export function checkPR(
   return { isPR: false, kind: null, prevBest: null };
 }
 
-// ── Misc helpers used by screens ─────────────────────────────────────────────
+// Misc helpers used by screens
 
 export function focusForDate(
   dateStr: string,

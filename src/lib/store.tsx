@@ -1,6 +1,5 @@
 "use client";
 
-// ── Discipline OS · State Store ──────────────────────────────────────────────
 // localStorage-first, Supabase cloud sync (JSONB blob, last-write-wins).
 // Works fully offline; syncs when online.
 
@@ -30,7 +29,7 @@ import type {
 } from "./types";
 import { todayStr } from "./engine";
 
-// ── Shape ────────────────────────────────────────────────────────────────────
+// Shape
 
 export interface AppState {
   habits: Habit[];
@@ -110,7 +109,7 @@ export function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-// ── Context ──────────────────────────────────────────────────────────────────
+// Context
 
 export type CloudStatus = "local" | "connecting" | "synced" | "offline" | "error";
 
@@ -159,7 +158,7 @@ export function useApp(): StoreCtx {
   return ctx;
 }
 
-// ── Provider ─────────────────────────────────────────────────────────────────
+// Provider
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(freshState);
@@ -174,7 +173,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     stateRef.current = state;
   }, [state]);
 
-  // ── Auth helpers (unified cross-device account) ─────────────────────────────
+  // Auth helpers (unified cross-device account)
 
   /**
    * PC case: this device already has an anonymous session + all the data.
@@ -350,7 +349,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, [state, ready]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // Actions
 
   function setStatus(date: string, habitId: string, status: HabitStatus | null) {
     setState((prev) => {

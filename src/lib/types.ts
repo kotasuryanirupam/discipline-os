@@ -1,5 +1,3 @@
-// ── Discipline OS · Core Types ──────────────────────────────────────────────
-
 export type HabitStatus = "done" | "mvd" | "missed";
 
 export interface Habit {
@@ -42,7 +40,7 @@ export interface ShutdownEntry {
   packedGymBag: boolean;
 }
 
-// ── Gym ──────────────────────────────────────────────────────────────────────
+// Gym
 
 export type MuscleGroup =
   | "back"
@@ -103,7 +101,7 @@ export interface SetLog {
   setNumber: number;
 }
 
-// ── Settings ────────────────────────────────────────────────────────────────
+// Settings
 
 export interface Settings {
   startDate: string; // ramp-mode anchor, YYYY-MM-DD
@@ -111,7 +109,7 @@ export interface Settings {
   caffeineCutoff: string; // "HH:MM"
 }
 
-// ── Cloud sync payload shapes (mirrors tables) ───────────────────────────────
+// Cloud sync payload shapes (mirrors tables)
 
 export interface CloudTableMap {
   habits: Habit & { user_id: string };

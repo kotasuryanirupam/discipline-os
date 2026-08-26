@@ -1,5 +1,4 @@
-// ── Discipline OS · Seed Data ────────────────────────────────────────────────
-// Preloaded habits, your real college timetable, gym split & exercises.
+// Preloaded habits, real college timetable, gym split & exercises.
 
 import type { Habit, ScheduleBlock, Exercise } from "./types";
 
