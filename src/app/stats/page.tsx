@@ -1,16 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
 import { useApp } from "@/lib/store";
 import { Card, SectionTitle } from "@/components/ui";
 import { computeStreak, todayStr, addDays, est1RM } from "@/lib/engine";
@@ -155,19 +145,18 @@ export default function StatsPage() {
 
       <SectionTitle>Adherence by weekday · last 4 weeks</SectionTitle>
       <Card>
-        <div style={{ width: "100%", height: 180 }}>
-          <ResponsiveContainer>
-            <BarChart data={weekdayStats}>
-              <XAxis dataKey="day" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis domain={[0, 100]} stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} unit="%" />
-              <Tooltip
-                contentStyle={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
-                labelStyle={{ color: "#e2e8f0" }}
-                formatter={(value) => [`${value}%`, "adherence"] as [string, string]}
+        <div className="flex h-[180px] items-end justify-between gap-2 px-1">
+          {weekdayStats.map((d) => (
+            <div key={d.day} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+              <span className="text-[10px] font-medium text-slate-400">{d.adherence}%</span>
+              <div
+                title={`${d.day}: ${d.adherence}% adherence`}
+                className="w-full max-w-12 rounded-t-md bg-emerald-400 transition-all hover:bg-emerald-300"
+                style={{ height: `${Math.max(d.adherence, 1.5)}%` }}
               />
-              <Bar dataKey="adherence" fill="#34d399" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+              <span className="text-[11px] text-slate-500">{d.day}</span>
+            </div>
+          ))}
         </div>
       </Card>
 
@@ -186,38 +175,27 @@ export default function StatsPage() {
       </div>
       {gymData.volume.length > 0 && (
         <Card title="Weekly volume (kg)" subtitle="Total kg lifted per week">
-          <div style={{ width: "100%", height: 180 }}>
-            <ResponsiveContainer>
-              <BarChart data={gymData.volume}>
-                <XAxis dataKey="week" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
-                  labelStyle={{ color: "#e2e8f0" }}
-                  formatter={(value) => [`${value} kg`, "volume"] as [string, string]}
-                />
-                <Bar dataKey="volume" fill="#f87171" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex h-[180px] items-end justify-between gap-2 px-1">
+            {gymData.volume.map((v) => {
+              const max = Math.max(...gymData.volume.map((x) => x.volume), 1);
+              return (
+                <div key={v.week} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                  <span className="text-[10px] font-medium text-slate-400">{Math.round(v.volume)}</span>
+                  <div
+                    title={`Week of ${v.week}: ${Math.round(v.volume)} kg`}
+                    className="w-full max-w-12 rounded-t-md bg-red-400 transition-all hover:bg-red-300"
+                    style={{ height: `${Math.max((v.volume / max) * 100, 1.5)}%` }}
+                  />
+                  <span className="text-[11px] text-slate-500">{v.week}</span>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}
       {gymData.prog.length > 1 && (
         <Card title={`${gymData.exName} · est. 1RM progression`}>
-          <div style={{ width: "100%", height: 180 }}>
-            <ResponsiveContainer>
-              <LineChart data={gymData.prog}>
-                <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} domain={["auto", "auto"]} />
-                <Tooltip
-                  contentStyle={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
-                  labelStyle={{ color: "#e2e8f0" }}
-                  formatter={(value) => [`${value} kg`, "est. 1RM"] as [string, string]}
-                />
-                <Line type="monotone" dataKey="orm" stroke="#38bdf8" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ProgressionSparkline data={gymData.prog} />
         </Card>
       )}
 
@@ -275,6 +253,63 @@ function HeatGrid({
           className={`h-3.5 w-3.5 rounded-[3px] ${colors[c.level]}`}
         />
       ))}
+    </div>
+  );
+}
+
+/** Dependency-free SVG progression chart — renders instantly, no animation flakiness. */
+function ProgressionSparkline({ data }: { data: { date: string; orm: number }[] }) {
+  const W = 660;
+  const H = 180;
+  const PAD = { l: 44, r: 14, t: 14, b: 26 };
+  const xs = data.map((_, i) => i);
+  const ys = data.map((d) => d.orm);
+  const yMin = Math.min(...ys) * 0.92;
+  const yMax = Math.max(...ys) * 1.05;
+  const px = (i: number) =>
+    PAD.l + (i / Math.max(1, xs.length - 1)) * (W - PAD.l - PAD.r);
+  const py = (v: number) =>
+    H - PAD.b - ((v - yMin) / Math.max(0.001, yMax - yMin)) * (H - PAD.t - PAD.b);
+
+  const path = data.map((d, i) => `${i === 0 ? "M" : "L"}${px(i).toFixed(1)},${py(d.orm).toFixed(1)}`).join(" ");
+  const area = `${path} L${px(data.length - 1).toFixed(1)},${H - PAD.b} L${px(0).toFixed(1)},${H - PAD.b} Z`;
+  const ticks = [yMin, (yMin + yMax) / 2, yMax];
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-[180px] w-full" role="img" aria-label="1RM progression chart">
+        <defs>
+          <linearGradient id="ormFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {ticks.map((t, i) => (
+          <g key={i}>
+            <line x1={PAD.l} x2={W - PAD.r} y1={py(t)} y2={py(t)} stroke="rgba(255,255,255,0.06)" />
+            <text x={PAD.l - 6} y={py(t) + 3.5} textAnchor="end" fontSize="10" fill="#64748b">
+              {Math.round(t)}
+            </text>
+          </g>
+        ))}
+        {data
+          .filter((_, i) => i % Math.ceil(data.length / 6) === 0 || i === data.length - 1)
+          .map((d) => {
+            const idx = data.indexOf(d);
+            return (
+              <text key={d.date + idx} x={px(idx)} y={H - 8} textAnchor="middle" fontSize="9.5" fill="#64748b">
+                {d.date.slice(5)}
+              </text>
+            );
+          })}
+        <path d={area} fill="url(#ormFill)" />
+        <path d={path} fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {data.map((d, i) => (
+          <circle key={d.date + i} cx={px(i)} cy={py(d.orm)} r="3" fill="#38bdf8">
+            <title>{`${d.date} · est. 1RM ${d.orm} kg`}</title>
+          </circle>
+        ))}
+      </svg>
     </div>
   );
 }
