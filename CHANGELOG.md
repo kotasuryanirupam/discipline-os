@@ -1,7 +1,7 @@
 # Changelog
 
-All notable changes to Discipline OS are documented here.
-Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [SemVer](https://semver.org/).
+I keep this by hand, the way I'd want to read it. Newest first.
+Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
@@ -13,7 +13,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 ## [1.0.0] — 2026-08-26
 
-First stable release. The full personal consistency loop is production-ready:
+First stable release. The full loop I wanted on day one finally works end to end:
 **Today → log habits → gym → shutdown ritual → receipts.**
 
 ### Added
@@ -41,10 +41,12 @@ First stable release. The full personal consistency loop is production-ready:
   semantics, ramp mode, Epley 1RM + PR detection, last-session lookup
 
 ### Changed
-- Charts rebuilt as dependency-free SVG/CSS (removed Recharts) — instant render, tiny bundle
+- Charts rebuilt as dependency-free SVG/CSS (goodbye Recharts) — instant render, tiny bundle
 - TypeScript check folded into `next build` (route types are generated during build)
 
 ## [0.1.0] — 2026-08-25
+
+Where it all started. Built in one very caffeinated stretch:
 
 ### Added
 - Initial app: habits, day-type schedule, gym tracker, shutdown ritual, stats,

@@ -1,21 +1,39 @@
-# 🤝 Contributing to Discipline OS
+# 🤝 Contributing
 
-Thanks for your interest in contributing! 🎉 Discipline OS is a **personal, opinionated
-product** — it is deliberately built for *one user's real life* (a specific college
-timetable, a Wed-anchored gym split, a 4 AM ramp). That philosophy shapes every rule below.
+First off — thanks for even reading this. Discipline OS started as a tool for exactly
+one person (me), so contributing here is a bit unusual. Here's how I think about it:
 
-## 🧭 Project philosophy (read first)
+## The honest disclaimer
 
-1. **Opinionated by design.** The app encodes one person's system: MVD semantics,
-   never-miss-twice, the Wednesday gym anchor. Don't propose features that generalize
-   these into "configurable everything" — the opinions *are* the product.
-2. **Zero-dependency bias.** Charts are hand-rolled SVG/CSS. State is a custom store.
-   Before adding any npm package, ask: *"can 40 lines of TypeScript do this?"*
-3. **Offline-first.** localStorage is the source of truth; Supabase sync is a bonus.
-   Every feature must work with zero network and zero env vars.
-4. **The streak math must never silently break.** Logic changes require tests.
+This app is **opinionated on purpose**. It hardcodes my college timetable, my
+Wednesday-anchored gym split, my 4 AM ramp. If you open a PR that turns those into
+config options for everyone, I'll probably decline — not because it's bad engineering,
+but because the opinions *are* the product. Fork it and make it yours instead; I mean
+that genuinely.
 
-## 🛠️ Setup
+That said: bug fixes, engine improvements, docs, and anything that deepens the core loop
+(today → log → shutdown → receipts) are very welcome.
+
+## House rules
+
+These are the rules I hold myself to, and PRs to:
+
+1. **The engine stays pure.** [`src/lib/engine.ts`](src/lib/engine.ts) contains all the
+   streak / never-miss-twice / ramp / PR math as pure functions. No DOM, no storage, no
+   network in there — ever.
+2. **Engine changes ship with tests.** [`tests/engine.test.ts`](tests/engine.test.ts)
+   exists because the streak math must never silently break. If your PR changes when a
+   streak counts or breaks, there should be a test proving the new behavior.
+3. **No new runtime dependencies without a conversation.** Charts are hand-rolled SVG
+   and state is a custom store for a reason. Open an issue first if a library seems
+   truly necessary.
+4. **Offline-first always.** Everything must work with zero env vars and no network.
+   Supabase sync is a bonus layer, not a requirement.
+5. **Never let empty data destroy real data.** The sync guards exist because "opened the
+   app on a new phone" must never equal "deleted my history". Any change to the sync
+   path has to preserve this.
+
+## Getting set up
 
 ```bash
 git clone https://github.com/kotasuryanirupam/discipline-os.git
@@ -24,68 +42,39 @@ npm install
 npm run dev          # → http://localhost:3000
 ```
 
-No `.env.local` needed — the app runs fully local without Supabase keys.
+No `.env.local` needed for local development — the app runs fully local.
 
-## 🔁 Workflow
+## How I like PRs
 
-1. **Open an issue first** for anything bigger than a typo fix — include the behavior
-   you saw vs. expected, and screenshots for UI changes.
-2. Fork → branch from `master`:
+1. **Open an issue first** unless it's a typo-level fix. Screenshots help a lot for UI.
+2. Branch from `master` with a short name: `fix/streak-gap-day`, `docs/ramp-weeks`.
+3. Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — e.g.
+   `fix(engine): count MVD-only days toward best streak`.
+4. Make these pass before pushing (CI runs exactly this):
    ```bash
-   git checkout -b feat/weekly-review-screen
+   npm run lint     # eslint, zero warnings please
+   npm test         # vitest
+   npm run build    # includes the full typecheck
    ```
-3. Branch naming: `feat/<slug>`, `fix/<slug>`, `docs/<slug>`, `chore/<slug>`.
-4. Commit style — [Conventional Commits](https://www.conventionalcommits.org/):
-   ```
-   feat(stats): add weekly adherence trend to receipts screen
-   fix(engine): treat today-as-mvd as a win when computing warn state
-   docs(readme): clarify ramp-mode week boundaries
-   ```
-5. Before pushing, make all gates pass locally:
-   ```bash
-   npm run lint        # eslint (next/core-web-vitals)
-   npm test            # vitest — engine logic must stay green
-   npm run build       # next build (includes full typecheck)
-   ```
-6. Push and open a PR against `master`. Fill out the PR template, tick the checklist.
-7. CI must be green before review.
+5. Fill out the PR template honestly — including the checkboxes you *didn't* tick.
 
-## ✅ Code guidelines
+I'm one person with a college schedule, so reviews may take a couple of days. It's not
+you, it's my timetable. 🙂
 
-**TypeScript**
-- Strict mode; no `any` unless there's a written justification in a comment.
-- Domain types live in [`src/lib/types.ts`](src/lib/types.ts) — extend them, don't
-  invent parallel shapes.
+## Reporting bugs well
 
-**Logic (`src/lib/engine.ts`)**
-- Pure functions only — no `window`, no React, no storage access.
-- Any change to streak / never-miss-twice / ramp / PR math **requires tests** in
-  [`tests/engine.test.ts`](tests/engine.test.ts), including edge cases
-  (empty history, gaps, timezone-sensitive dates).
+The best bug reports I've gotten included three things:
+- **The exact date and weekday** — schedules and the gym split differ per weekday, so
+  "it broke Tuesday" is often the whole clue.
+- What the app showed vs. what actually happened.
+- A screenshot (installed-as-PWA vs. browser tab matters too).
 
-**UI (`src/app`, `src/components`)**
-- Tailwind utility classes; dark, high-contrast, mobile-first (the app lives on a phone).
-- No new client-state libraries; use the existing store ([`src/lib/store.tsx`](src/lib/store.tsx)).
+## Feature ideas
 
-**Data & privacy**
-- Never log or persist user content outside the user's own device/row.
-- Sync changes must preserve the **data-safety guards**: an empty device or an empty
-  cloud payload can never overwrite real history.
+Same deal: tell me the **problem** first, then why existing features don't cover it, then
+the smallest version that would solve it. "Add settings" pitches will get a friendly
+no; "the warning banner saved me but X" pitches are gold.
 
-## 🐛 Bug reports
+## License
 
-Great bug reports include:
-- Device + browser + installed-as-PWA or not
-- Exact date & weekday (the schedule/gym split is weekday-aware!)
-- What the streak/score showed vs. what the logs say
-- A screenshot
-
-## 💡 Feature requests
-
-Frame it as: **problem** → **why existing features don't cover it** → **smallest possible
-version**. Features that add config surface will likely be declined; features that deepen
-the core loop (today → log → shutdown → receipts) are welcome.
-
-## 📄 License
-
-By contributing, you agree your contributions are licensed under the [MIT License](LICENSE).
+By contributing you agree that your contributions ship under the [MIT License](LICENSE).

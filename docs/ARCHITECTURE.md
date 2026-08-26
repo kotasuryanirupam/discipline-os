@@ -1,7 +1,8 @@
 # Architecture — Discipline OS
 
-A map of how the app is put together, why each decision was made, and where the
-important invariants live. Read this before touching `src/lib/`.
+How the app is put together, why each decision was made, and where the important
+invariants live. I wrote this for two audiences: future me at 2 AM wondering *why* the
+streak logic looks like that, and anyone (human or AI agent) about to touch `src/lib/`.
 
 ## 1. Big picture
 
@@ -44,8 +45,9 @@ SEED  (src/lib/seed.ts)  ── default habits, weekday timetable templates, exe
 | `app/*`, `components/*` | store, engine, types | read/write localStorage directly |
 
 **Why:** the streak math is the heart of the product. Keeping it pure means the whole
-engine can be property-tested without a browser (see `tests/engine.test.ts`) and can
-never break silently because of some UI side effect.
+engine can be tested without a browser (see `tests/engine.test.ts`) and can never break
+silently because of some UI side effect. This split has already paid for itself — every
+streak bug I've ever had was caught by a test, not by losing a 100-day streak.
 
 ## 3. Core domain concepts
 
