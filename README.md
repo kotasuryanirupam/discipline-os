@@ -14,6 +14,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-sync-3fcf8e?logo=supabase)](https://supabase.com)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8?logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![CI](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml/badge.svg)](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [**→ Try the live app**](https://discipline-os-blond.vercel.app)
