@@ -9,7 +9,7 @@ import {
   BookOpen,
   Calendar,
   Settings,
-  Sync,
+  RefreshCcw,
   Moon,
 } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export default function SidebarNav({ collapsed }: SidebarNavProps) {
 
   const bottomItems = [
     { name: 'Settings', icon: Settings, href: '/settings' },
-    { name: 'Sync', icon: Sync, href: '/sync' },
+    { name: 'Sync', icon: RefreshCcw, href: '/sync' },
     { name: 'Theme', icon: Moon, href: '/theme' },
   ];
 
@@ -50,7 +50,7 @@ export default function SidebarNav({ collapsed }: SidebarNavProps) {
           >
             {item.icon && (
               <span className="nav-item-icon h-4 w-4">
-                {item.icon}
+                <item.icon />
               </span>
             )}
             {!collapsed && (
@@ -69,7 +69,7 @@ export default function SidebarNav({ collapsed }: SidebarNavProps) {
           >
             {item.icon && (
               <span className="nav-item-icon h-4 w-4">
-                {item.icon}
+                <item.icon />
               </span>
             )}
             {!collapsed && (
