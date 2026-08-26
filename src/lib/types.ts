@@ -66,6 +66,27 @@ export const SPLIT_ROTATION: MuscleGroup[][] = [
   ["legs", "shoulders", "abs"],
 ];
 
+/**
+ * Real-world gym week, anchored to WEDNESDAY (JS getDay() === 3).
+ * Wed Back+Tri · Thu Chest+Bi · Fri Legs+Sh+Abs · Sat Back+Tri ·
+ * Sun Chest+Bi · Mon Legs+Sh+Abs · **Tue = rest (college gym holiday)**
+ */
+export const GYM_WEEK: (MuscleGroup[] | null)[] = [
+  SPLIT_ROTATION[0], // Wed
+  SPLIT_ROTATION[1], // Thu
+  SPLIT_ROTATION[2], // Fri
+  SPLIT_ROTATION[0], // Sat
+  SPLIT_ROTATION[1], // Sun
+  SPLIT_ROTATION[2], // Mon
+  null, // Tue — gym holiday
+];
+
+/** Planned focus for a JS weekday (0=Sun..6=Sat); null on the rest day. */
+export function gymFocusForWeekday(weekday: number): MuscleGroup[] | null {
+  const pos = (weekday - 3 + 7) % 7; // position in the Wed-starting week
+  return GYM_WEEK[pos];
+}
+
 export interface WorkoutSession {
   id: string;
   date: string; // YYYY-MM-DD

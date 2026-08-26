@@ -309,7 +309,9 @@ export default function SettingsPage() {
           placeholder="Managed in the Gym tab"
           className="w-full cursor-not-allowed rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-500"
         />
-        <p className="mt-2 text-[11px] text-slate-600">Split rotation: Day 1 Back+Triceps · Day 2 Chest+Biceps · Day 3 Legs+Shoulders+Abs</p>
+        <p className="mt-2 text-[11px] text-slate-600">
+          Week (starts Wed): Back+Tri → Chest+Bi → Legs+Sh+Abs → Back+Tri → Chest+Bi → Legs+Sh+Abs → <span className="text-slate-400">Tue rest</span>
+        </p>
       </Card>
 
       {/* Data */}

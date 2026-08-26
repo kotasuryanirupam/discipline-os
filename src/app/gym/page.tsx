@@ -5,11 +5,10 @@ import { useApp } from "@/lib/store";
 import { Card, SectionTitle } from "@/components/ui";
 import {
   todayStr,
-  dayIndex,
   checkPR,
   est1RM,
 } from "@/lib/engine";
-import { SPLIT_ROTATION } from "@/lib/types";
+import { SPLIT_ROTATION, GYM_WEEK, gymFocusForWeekday } from "@/lib/types";
 import type { MuscleGroup, SetLog } from "@/lib/types";
 
 const GROUP_LABEL: Record<MuscleGroup, string> = {
@@ -61,25 +60,62 @@ export default function GymPage() {
   }, [restLeft]);
 
   const today = todayStr();
-  const plannedFocus = SPLIT_ROTATION[dayIndex(today) % SPLIT_ROTATION.length];
+  const weekday = new Date(`${today}T00:00:00`).getDay();
+  const plannedFocus = gymFocusForWeekday(weekday); // null on Tuesday (rest day)
+  const [override, setOverride] = useState(false);
+  const effectiveFocus = plannedFocus ?? (override ? SPLIT_ROTATION[0] : null);
 
   const focusExercises = useMemo(
-    () => state.exercises.filter((e) => plannedFocus.includes(e.muscleGroup)),
-    [state.exercises, plannedFocus],
+    () => state.exercises.filter((e) => effectiveFocus?.includes(e.muscleGroup) ?? false),
+    [state.exercises, effectiveFocus],
   );
 
   function begin() {
     setSelectedEx([]);
-    setSessionId(startSession(plannedFocus));
+    setSessionId(startSession(effectiveFocus ?? SPLIT_ROTATION[0]));
+  }
+
+  if (!sessionId && !effectiveFocus) {
+    // Tuesday — college gym holiday
+    return (
+      <div className="space-y-4">
+        <Header />
+        <Card
+          title="😴 Rest day"
+          subtitle="Tuesday — college gym is closed. Recovery is part of the program."
+        >
+          <p className="text-sm text-slate-400">
+            Rotation resumes tomorrow (<span className="text-slate-200">Wednesday · Back + Triceps</span>).
+          </p>
+          <button
+            onClick={() => setOverride(true)}
+            className="mt-4 w-full rounded-xl border border-white/15 bg-white/5 py-3 font-semibold text-slate-200 hover:bg-white/10"
+          >
+            💪 Train anyway (Back + Triceps)
+          </button>
+          <p className="mt-2 text-center text-[11px] text-slate-600">
+            Week: Wed Back+Tri · Thu Chest+Bi · Fri Legs+Sh+Abs · Sat Back+Tri · Sun Chest+Bi · Mon Legs+Sh+Abs · Tue rest
+          </p>
+        </Card>
+        <HistorySection />
+      </div>
+    );
   }
 
   if (!sessionId) {
     return (
       <div className="space-y-4">
         <Header />
-        <Card title="Today's split" subtitle={`Rotation day ${(dayIndex(today) % 3) + 1} of 3`}>
+        <Card
+          title="Today's split"
+          subtitle={
+            plannedFocus
+              ? `Rotation day ${(GYM_WEEK.findIndex((f) => f === plannedFocus) % 3) + 1} of 3`
+              : "Bonus session (rest-day override)"
+          }
+        >
           <div className="flex flex-wrap gap-2">
-            {plannedFocus.map((g) => (
+            {(effectiveFocus ?? []).map((g) => (
               <span key={g} className="rounded-lg bg-red-500/10 px-3 py-1.5 text-sm text-red-200">
                 {GROUP_LABEL[g]}
               </span>
