@@ -20,12 +20,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
-
       - name: Lint
         run: npm run lint
 
+      # `next build` runs the full TypeScript check internally (and generates
+      # next-env.d.ts + route types that a standalone tsc would miss).
       - name: Build
         run: npm run build
         env:
