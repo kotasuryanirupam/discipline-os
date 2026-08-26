@@ -7,6 +7,13 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    allow:
+      # Auto-PRs for direct-minor/patch only; major bumps need a manual,
+      # tested upgrade (they touch the whole tree — e.g. vitest 3→4).
+      - dependency-type: "direct"
+        update-type: "version-update:semver-minor"
+      - dependency-type: "direct"
+        update-type: "version-update:semver-patch"
     commit-message:
       prefix: "chore"
       include: "scope"
