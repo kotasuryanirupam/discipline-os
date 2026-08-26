@@ -1,23 +1,28 @@
 <div align="center">
 
-<img src="public/icons/icon-512.png" width="80" alt="Discipline OS logo" />
+<img src="public/icons/icon-512.png" width="88" alt="Discipline OS logo" />
 
 # 🏛️ Discipline OS
 
-**A personal consistency operating system — built for one user, designed around a real college timetable, a 4 AM routine, and the rule that wins everything:**
+**A personal consistency operating system — built for one user, designed around a real
+college timetable, a 4 AM routine, and the rule that wins everything:**
 
 ### _never miss twice._
 
+[![CI](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml/badge.svg)](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-sync-3fcf8e?logo=supabase)](https://supabase.com)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8?logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
-[![CI](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml/badge.svg)](https://github.com/kotasuryanirupam/discipline-os/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen?logo=vitest&logoColor=6e9a18)](https://github.com/kotasuryanirupam/discipline-os/tree/master/tests)
+[![Code Style](https://img.shields.io/badge/code%20style-opinionated-orange)](CONTRIBUTING.md#-project-philosophy-read-first)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg)](CONTRIBUTING.md)
 
-[**→ Try the live app**](https://discipline-os-blond.vercel.app)
+**[→ Try the live app](https://discipline-os-blond.vercel.app)** ·
+[Features](#-features) · [Core concepts](#-core-concepts) · [Architecture](docs/ARCHITECTURE.md) · [Roadmap](#%EF%B8%8F-roadmap)
 
 </div>
 
@@ -60,7 +65,8 @@
 | UI | **React 19** + **Tailwind CSS v4** | Modern concurrent React, utility-first styling |
 | Language | **TypeScript** (strict) | The streak math must never silently break |
 | State | Custom store (`localStorage` + Supabase) | Offline-first, last-write-wins, zero client-state deps |
-| Charts | Hand-rolled SVG/CSS | Instant render, no animation flakiness, tiny bundle |
+| Charts | Hand-rolled SVG/CSS | Instant render, no animation flakiness, tiny bundle — **zero chart deps** |
+| Testing | **Vitest** (`tests/engine.test.ts`) | The streak/PR/ramp engine is pure & fully unit-tested |
 | Cloud | **Supabase** (JSONB row per user) | One-table sync, RLS-scoped, anonymous → email upgrade path |
 | PWA | Manifest + service worker (`sw.js`) | Installable, offline shell, network-first navigation |
 
@@ -97,6 +103,19 @@ npx vercel
 
 Install it on your phone: open the deployed URL → **Add to Home Screen**.
 
+## 🧪 Tests
+
+The core logic (streaks, never-miss-twice, ramp mode, PR math) is pure TypeScript and
+covered by a Vitest suite:
+
+```bash
+npm test           # run once
+npm run test:watch # watch mode
+```
+
+19 tests cover MVD-as-win semantics, warn-at-one-miss / reset-at-two behavior, ramp
+week boundaries, Epley 1RM math, PR classification, and last-session lookup.
+
 ## 📁 Project structure
 
 ```
@@ -112,11 +131,18 @@ scripts/
   gen-icons.mjs   SVG → PNG/maskable icon pipeline (sharp)
 supabase/
   schema.sql      app_state table + RLS policies (idempotent)
+tests/
+  engine.test.ts  vitest suite for src/lib/engine.ts
 public/
   icons/          192/512 PNG + maskable + apple-touch
   manifest.json · sw.js (PWA) · icon.svg
-docs/screenshots/ README imagery
+docs/
+  ARCHITECTURE.md how it all fits together, layer rules, invariants
+  screenshots/    README imagery
 ```
+
+Deep dive: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — layer rules, sync model,
+and every domain invariant (MVD, never-miss-twice, Wed anchor) explained.
 
 ## 🗺️ Roadmap
 
@@ -124,6 +150,14 @@ docs/screenshots/ README imagery
 - [ ] Weekly review screen (auto-generated from shutdown entries)
 - [ ] Widget-style quick actions from the home screen
 - [ ] Data export → Markdown monthly report
+
+## 🤝 Contributing
+
+This is an opinionated personal tool — read the philosophy first:
+**[CONTRIBUTING.md](CONTRIBUTING.md)**. Bug reports via the
+[issue templates](https://github.com/kotasuryanirupam/discipline-os/issues/new/choose);
+security issues via **[SECURITY.md](SECURITY.md)** (no public issues). Releases are
+tracked in **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## 📄 License
 

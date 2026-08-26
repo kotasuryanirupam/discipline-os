@@ -1,19 +1,45 @@
 {
   "name": "discipline-os",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Personal consistency OS — 4AM routine, habit streaks with MVD semantics, never-miss-twice engine, gym split tracker, shutdown ritual. Next.js · PWA · Supabase sync.",
+  "keywords": [
+    "habit-tracker",
+    "streaks",
+    "pwa",
+    "nextjs",
+    "supabase",
+    "gym-tracker",
+    "productivity",
+    "self-improvement"
+  ],
+  "license": "MIT",
+  "author": "Kota Surya Nirupam <kotasuryanirupam@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kotasuryanirupam/discipline-os.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kotasuryanirupam/discipline-os/issues"
+  },
+  "homepage": "https://discipline-os-blond.vercel.app",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "recharts": "^3.10.1"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -23,6 +49,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

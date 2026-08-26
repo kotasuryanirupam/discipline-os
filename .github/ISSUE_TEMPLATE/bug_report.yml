@@ -1,0 +1,68 @@
+---
+name: 🐛 Bug report
+description: Something broke or behaves wrong — tell us precisely
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time! Discipline OS is **weekday- and date-aware**, so
+        precise context matters a lot. The more exact you are, the faster the fix.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did → what you expected → what actually happened.
+      placeholder: Streak showed 0 this morning even though yesterday was logged done…
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      options:
+        - Today dashboard (score / wake target / schedule)
+        - Habits & streaks
+        - Gym tracker
+        - Shutdown ritual
+        - Stats / receipts
+        - Cloud sync / auth
+        - PWA install / offline
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: date-weekday
+    attributes:
+      label: Date & weekday it happened
+      description: e.g. Tue 2026-08-25 — schedules and the gym split differ per weekday.
+      placeholder: Tue 2026-08-25
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where does it happen?
+      options:
+        - Android (PWA installed)
+        - Android (browser tab)
+        - iOS (PWA installed)
+        - iOS (browser tab)
+        - Desktop browser
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots / console errors
+      description: Screenshots of the screen + any red console output (F12 → Console).
+      placeholder: Paste screenshots or error text here.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for a duplicate
+          required: true
+        - label: This happens on the latest deployed version (or latest master)
+          required: true

@@ -1,0 +1,43 @@
+---
+name: 💡 Feature idea
+description: Suggest an improvement — problem first, solution second
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Heads up before you write: Discipline OS is **deliberately opinionated and
+        built for one user** (see CONTRIBUTING.md). The best feature requests here
+        deepen the core loop — *today → log → shutdown → receipts* — rather than add
+        configuration surface.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / friction
+      description: What are you trying to do, and where does the current app fight you?
+      placeholder: After a missed day I want to see *which* habit triggered the warning…
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Why existing features don't cover it
+      description: Which screen/feature did you try first?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Smallest possible version
+      description: Describe the minimal change that would solve it. No wish-lists.
+    validations:
+      required: true
+  - type: checkboxes
+    id: philosophy
+    attributes:
+      label: Philosophy check
+      options:
+        - label: This keeps the app offline-first without new required dependencies
+          required: true
+        - label: This deepens the core loop rather than adding generic configurability
+          required: true

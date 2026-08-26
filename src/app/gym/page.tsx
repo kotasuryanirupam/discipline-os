@@ -22,7 +22,7 @@ const GROUP_LABEL: Record<MuscleGroup, string> = {
 };
 
 export default function GymPage() {
-  const { state, startSession, logSet, deleteSet, addExercise } = useApp();
+  const { state, startSession, deleteSet, addExercise } = useApp();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedEx, setSelectedEx] = useState<string[]>([]);
   const [restLeft, setRestLeft] = useState<number | null>(null);

@@ -1,3 +1,4 @@
+# CI — lint + typecheck + build + tests on every push/PR to master.
 name: CI
 
 on:
@@ -5,6 +6,10 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -32,3 +37,6 @@ jobs:
           # the app degrades gracefully to local-only mode without real ones.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+
+      - name: Test (Vitest)
+        run: npm test

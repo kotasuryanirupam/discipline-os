@@ -4,10 +4,8 @@
 import type {
   Habit,
   HabitStatus,
-  WakeLog,
   SetLog,
   WorkoutSession,
-  Exercise,
 } from "./types";
 
 // ── Dates ────────────────────────────────────────────────────────────────────
