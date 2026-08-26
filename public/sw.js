@@ -1,6 +1,6 @@
 // Discipline OS · service worker
 // Strategy: network-first for navigation, cache-first for static assets.
-const CACHE = "discipline-os-v1";
+const CACHE = "discipline-os-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
